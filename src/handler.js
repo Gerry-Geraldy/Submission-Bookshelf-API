@@ -77,37 +77,71 @@ const addBookHandler = (request, h) => {
   return response
 }
 
-const getAllBooksHandler = (request, h) => {
+const getAllBookHandler = (request, h) => {
   const { name, reading, finished } = request.query
 
-  let filteredBooks = books
+  if (!name && !reading && !finished) {
+    const response = h.response({
+      status: 'success',
+      data: {
+        books: books.map((book) => ({
+          id: book.id,
+          name: book.name,
+          publisher: book.publisher
+        }))
+      }
+    })
+    response.code(200)
+    return response
+  }
 
   if (name) {
-    const nameRegex = new RegExp(name, 'gi')
-    filteredBooks = filteredBooks.filter((book) => nameRegex.test(book.name))
+    const filteredBooksName = books.filter((book) => {
+      const nameRegex = new RegExp(name, 'gi')
+      return nameRegex.test(book.name)
+    })
+
+    const response = h.response({
+      status: 'success',
+      data: {
+        books: filteredBooksName.map((book) => ({
+          id: book.id,
+          name: book.name,
+          publisher: book.publisher
+        }))
+      }
+    })
+    response.code(200)
+    return response
   }
 
-  if (reading === '0') {
-    filteredBooks = filteredBooks.filter((book) => book.reading === false)
-  } else if (reading === '1') {
-    filteredBooks = filteredBooks.filter((book) => book.reading === true)
+  if (reading) {
+    const filteredBooksReading = books.filter(
+      (book) => Number(book.reading) === Number(reading)
+    )
+
+    const response = h.response({
+      status: 'success',
+      data: {
+        books: filteredBooksReading.map((book) => ({
+          id: book.id,
+          name: book.name,
+          publisher: book.publisher
+        }))
+      }
+    })
+    response.code(200)
+    return response
   }
 
-  if (finished === '0') {
-    filteredBooks = filteredBooks.filter((book) => book.finished === false)
-  } else if (finished === '1') {
-    filteredBooks = filteredBooks.filter((book) => book.finished === true)
-  }
-
-  const limitedBooks = filteredBooks.slice(
-    0,
-    Math.min(filteredBooks.length, 2)
+  const filteredBooksFinished = books.filter(
+    (book) => Number(book.finished) === Number(finished)
   )
 
   const response = h.response({
     status: 'success',
     data: {
-      books: limitedBooks.map((book) => ({
+      books: filteredBooksFinished.map((book) => ({
         id: book.id,
         name: book.name,
         publisher: book.publisher
@@ -236,7 +270,7 @@ const deleteBookByIdHandler = (request, h) => {
 
 module.exports = {
   addBookHandler,
-  getAllBooksHandler,
+  getAllBookHandler,
   getBookByIdHandler,
   editBookByIdHandler,
   deleteBookByIdHandler
